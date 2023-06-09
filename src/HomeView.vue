@@ -1,8 +1,32 @@
 <script>
 import {defineComponent} from 'vue'
+import axios from "axios";
 
 export default defineComponent({
-   name: "HomeView"
+   name: "HomeView",
+   data() {
+      return {
+         repos: []
+      }
+   },
+   mounted() {
+      this.getRepos()
+   },
+   methods: {
+      getRepos() {
+         const url = import.meta.env.VITE_API_URL
+         axios
+             .get(url + '/repos')
+             .then(response => {
+                const repos = response['data']['message']['repos']
+                repos.sort((a, b) => new Date(b['created_at']) - new Date(a['created_at']))
+                this.repos = repos
+             })
+             .catch(error => {
+                console.log(error)
+             })
+      }
+   }
 })
 </script>
 
@@ -19,24 +43,6 @@ export default defineComponent({
       <hr class="divider">
 
       <div class="mt-5">
-         <p>Most used languages</p>
-         <table class="table">
-            <thead>
-            <tr>
-               <th scope="col">Name</th>
-               <th scope="col">Number of public repos</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-               <td>Python</td>
-               <td>46</td>
-            </tr>
-            </tbody>
-         </table>
-      </div>
-
-      <div class="mt-5">
          <p>Projects</p>
          <table class="table">
             <thead>
@@ -47,11 +53,10 @@ export default defineComponent({
             </tr>
             </thead>
             <tbody>
-            <tr>
-               <td>finance-parser</td>
-               <td>Serverless parser to extract information from financial reports using AWS Step Functions, AWS S3,
-                  AWS Api Gateway, AWS Textract, AWS DynamoDB and Eventbridge</td>
-               <td>Link</td>
+            <tr v-for="repo in repos">
+               <td>{{ repo['pk'] }}</td>
+               <td>{{ repo['description'] }}</td>
+               <td><a :href="repo['url']" target="_blank">Link</a></td>
             </tr>
             </tbody>
          </table>
